@@ -160,7 +160,6 @@ public class RainbowGame extends JApplet implements Runnable {
             }
 
         } catch (Exception e) {
-            System.out.println("YES");
         }
 
         gameOver = false;
@@ -171,9 +170,9 @@ public class RainbowGame extends JApplet implements Runnable {
         addKeyListener(key);
 
         gameEvents = new GameEvents();
-        p1 = new Player1(Katch[0], 270, 430, 10);
-        pp = new Pop(280, 280, 5, 270, 1, 1);
-        leg = new Bigleg(spr_Bigleg[0], 270, 30, 0);
+        p1 = new Player1(Katch[0], 270, 430, 10);// player
+        pp = new Pop(280, 280, 3, 120, 1, 1); // pop
+        leg = new Bigleg(spr_Bigleg[0], 270, 30, 0); //boss
 
         gameEvents.addObserver(p1);
 
@@ -246,19 +245,47 @@ public class RainbowGame extends JApplet implements Runnable {
         }
 
         public int popcollision(int x, int y, int w, int h) {
+            /*
             if (((y > (this.y +1)) && (y < (this.y + sizeY))) && ((x + w) > (this.x + 1)) && (x < (this.x + sizeX - 1))) {
+                System.out.println("For North");
                 return 1;//FOR NORTH
+            }*/
+            
+            if ( (y < this.y + this.sizeY) && (x+w > this.x) && (x< this.x +this.sizeX) && (y +h > this.y)) {
+                
+                if ( y >= this.y + this.sizeY - 5) {
+                    System.out.println("For South");
+                    return 1;
+                }
+                if ( x >= this.x + this.sizeX - 5){
+                    //east
+                    return 4;
+                }
+                if ( this.y <= y + h + 5 ){
+                    //north
+                    return 2;
+                }
+                if ( this.x <= x + w ) {
+                    //west
+                    return 3;
+                }
+                
+                      
             }
+            /*
             if ((((y + h) < (this.y + sizeY - 1)) && ((y + h) > this.y)) && ((x + w) > (this.x + 1)) && (x < (this.x + sizeX - 1))) {
+                System.out.println("For south");
                 return 2;//FOR SOUTH
             }
             if  ((y < (this.y + sizeY - 6)) && ((y + h) > (this.y + 6)) && (x > (this.x + 10)) && (x < (this.x + sizeX))) {
+                System.out.println("For west");
                 return 3;//FOR WEST
             }
             if ((y < (this.y + sizeY - 6)) && ((y + h) > (this.y + 6)) && (((x + w) > this.x) && ((x + w) < (this.x + 6)))) {
+                System.out.println("For east");
                 return 4;//FOR EAST
             }
-
+            */
             return 0;
         }
 
@@ -338,14 +365,13 @@ public class RainbowGame extends JApplet implements Runnable {
     public class Pop {
 
         Image img;
-        int x, y, speed, sizeX, sizeY, direction, bulletType, Player, collisionType, i;
+        int x, y, speed, sizeX, sizeY, direction, bulletType, Player, i;
         boolean show;
 
         Pop(int x, int y, int speed, int direction, int type, int Player) {
             this.direction = direction;
             this.bulletType = type;
             this.Player = Player;
-            this.collisionType = 1;
             //普通子弹
             this.x = x;
             this.y = y;
@@ -389,86 +415,86 @@ public class RainbowGame extends JApplet implements Runnable {
 
         public void update(int w, int h) {
             updateDirection();
+            int moveType = 1; // not collision between board and pop
+            for (int k = 0; k < wallBlocks.size(); k++) {
+                Wall wll = (Wall) wallBlocks.get(k);
+                int collisionType = wll.popcollision(x, y, sizeX, sizeY);
+                if (wll.show == true && (collisionType==1||collisionType==2)) {
 
-            if (p1.popCollision(x, y, sizeX, sizeY,speed) == 0) {
-                if (this.collisionType == 1) {
-                  //  System.out.println("dd");
+                    if (wll.type == 2) {
+                        //this.collisionType = -this.collisionType;
+                        wll.show = false;
+                         direction =  - direction;
+                          score1++;
+                        System.out.println("可打破（南北）");
+                    } else if (wll.type == 3) {
+                        direction = - direction;                          
+                        System.out.println("硬砖块（南北）");
+                    } else if (wll.type == 1) {
+                        
+                        if (x > 585 || x < 15){
+                            direction = 360 - (direction - 180);
+                        }else {
+                            direction =- direction; 
+                        }
+
+                        System.out.println("墙（南北）");
+                    }
+                    moveType=0;
+                    y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed+1;
+                    x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed+1;
+                   break;
+                }else if(wll.show == true && (collisionType==3||collisionType==4)){
+                     if (wll.type == 2) {
+                        wll.show = false;
+                         direction = 360 - (direction - 180);
+                          score1++;
+                        System.out.println("可打破砖块");
+                    } else if (wll.type == 3) {
+                        direction = 360 - (direction - 180);                           
+                        System.out.println("硬砖块");
+                    } else if (wll.type == 1) {
+                        direction = 360 - (direction - 180);  
+                        System.out.println("墙");
+                    }
+                     moveType = 0;
+                    y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed+1;
+                    x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed+1;
+                     break;
+
+                }
+            }
+            if (moveType == 1){
+                if (p1.popCollision(x, y, sizeX, sizeY,speed) == 0) {
+                         y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
+                         x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;
+                } else if (p1.popCollision(x, y, sizeX, sizeY,speed) == 2) {
+                    System.out.println("2");
+                    //this.collisionType = -this.collisionType;
+                    direction=-direction;
+                    y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
+                    x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;          
+                } //右边
+                else if (p1.popCollision(x, y, sizeX, sizeY,speed) == 3) {
+                    direction = 60;
+                    System.out.println("3");
+                    //this.collisionType = -this.collisionType;
                     x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;
                     y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
-                } else {
-                     y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
-                     x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;
-                }
-            } else if (p1.popCollision(x, y, sizeX, sizeY,speed) == 2) {
-                System.out.println("2");
-                this.collisionType = -this.collisionType;
-                direction=-direction;
-                y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
-                x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;          
-            } //右边
-            else if (p1.popCollision(x, y, sizeX, sizeY,speed) == 3) {
-                direction = 60;
-                System.out.println("3");
-                this.collisionType = -this.collisionType;
-                x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;
-                y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
-                //  y -= this.speed;
-            } //左边
-            else if (p1.popCollision(x, y, sizeX, sizeY,speed) == 4) {
-                direction = 120;
-                System.out.println("4");
-                this.collisionType = -this.collisionType;
+                    //  y -= this.speed;
+                } //左边
+                else if (p1.popCollision(x, y, sizeX, sizeY,speed) == 4) {
+                    direction = 120;
+                    System.out.println("4");
+                    //this.collisionType = -this.collisionType;
 
+                }
             }
 
             if (bulletType == 1) {
-               
-                for (int k = 0; k < wallBlocks.size(); k++) {
-                    Wall wll = (Wall) wallBlocks.get(k);
-                    
-                    if ((wll.popcollision(x, y, sizeX, sizeY)==2)||(wll.popcollision(x, y, sizeX, sizeY)==1)&&
-                            
-                                        wll.show == true) {
-                        
-                        if (wll.type == 2) {
-                            //this.collisionType = -this.collisionType;
-                            wll.show = false;
-                             direction =  - direction;
-                              score1++;
-                            System.out.println("可打破（南北）");
-                        } else if (wll.type == 3) {
-                            direction = - direction;
-                            this.collisionType = -this.collisionType;                           
-                            System.out.println("硬砖块（南北）");
-                        } else if (wll.type == 1) {
-                            this.collisionType = -this.collisionType;
-                            direction =- direction;                         
-                            System.out.println("墙（南北）");
-                        }
-                    }else if((wll.popcollision(x, y, sizeX, sizeY)==3)||(wll.popcollision(x, y, sizeX, sizeY)==4)&&
-                            
-                                     wll.show == true){
-                         if (wll.type == 2) {
-                            this.collisionType = -this.collisionType;
-                            wll.show = false;
-                             direction = 360 - (direction - 180);
-                              score1++;
-                            System.out.println("可打破砖块");
-                        } else if (wll.type == 3) {
-                            direction = 360 - (direction - 180);
-                            this.collisionType = -this.collisionType;                           
-                            System.out.println("硬砖块");
-                        } else if (wll.type == 1) {
-                            this.collisionType = -this.collisionType;
-                            direction = 360 - (direction - 180);                        
-                            System.out.println("墙");
-                        }
-                    
-                    }
 
-                }
-                x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;
-                y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
+                
+                
                 
                /* if (leg.collision(x, y, sizeX, sizeY) && leg.show == true) {
 
@@ -484,7 +510,8 @@ public class RainbowGame extends JApplet implements Runnable {
 
             if (this.y > 450) {
                 System.out.println("mei");
-                restart();
+                direction =  - direction;
+                //restart();
             }
             }
 
