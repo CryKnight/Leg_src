@@ -30,28 +30,24 @@ public class RainbowGame extends JApplet implements Runnable {
     public static int land_height = 1280;
 
     public static ArrayList wallBlocks;
-    public static ArrayList Blocks;
-    public static AudioClip snd_block, snd_bigLeg, snd_katch, snd_lost, backgroundMusic, snd_expSmall, snd_expLarge;
+    public static ArrayList wallBlocks2; //for next level
+    public static AudioClip snd_block, snd_bigLeg, snd_wall, snd_katch, snd_lost, backgroundMusic;
     Random generator = new Random(1234567);
-    Wall w1, w2, w3;
+    Wall w1, w2, w3, w4, w5, w6,w7;
     Player1 p1;
     Pop pp;
     Bigleg leg;
+    SmallBigleg sLeg;
     GameEvents gameEvents;
-    Explosion explosion;
     private BufferedImage bimg, bimg2;
     private BufferedImage Katch_strip;
     private BufferedImage Pop_strip;
     private BufferedImage Bigleg_strip;
-    private BufferedImage Lifes_strip;
-    private BufferedImage explosion_small_strip;
-    private BufferedImage explosion_large_strip;
-    Image screen1, background, wall1, block2, block3, lifes,gameover;
-    Image spr_explosion_small[];
-    Image spr_explosion_large[];
-//wall1 solid
-    Image[] Katch, spr_Katch, spr_Pop, spr_Bigleg, spr_Lifes;
+    private BufferedImage sLeg_strip;
+    Image screen1,screen2, background, background2, wall1, block2, block3, block4, block5, block6,block7, life, gameover;
+    Image[] Katch, spr_Katch, spr_Pop, spr_Bigleg, spr_boss,spr_sLeg;
     boolean gameOver;
+    public boolean nextlevel;
     ImageObserver observer;
 
     public void init() {
@@ -59,18 +55,29 @@ public class RainbowGame extends JApplet implements Runnable {
         //Background
         setBackground(Color.white);
         background = getSprite("Resources/Background1.png");
-    gameover=getSprite("Resources/Title.png");
+        gameover = getSprite("Resources/Title.png");
+        background2 = getSprite("Resources/Background2.png");
         // Walls
         wall1 = getSprite("Resources/Wall.png");
         block2 = getSprite("Resources/Block2.png");
         block3 = getSprite("Resources/Block_solid.png");
+        block4 = getSprite("Resources/Block1.png");
+        block5 = getSprite("Resources/Block_life.png");
+        block6 = getSprite("Resources/Block5.png");
+        block7 = getSprite("Resources/Block_double.png");
+        life = getSprite("Resources/Katch_small.png");
         //read txt
         wallBlocks = new ArrayList();
-        int[][] matrixx = new int[41][41];
+        wallBlocks2 = new ArrayList();
+        int[][] matrixx = new int[40][40];
+       int[][]matrixx2= new int[40][40];
+       nextlevel=false;
         try {
-            InputStream input;
-            input = ClassLoader.getSystemResourceAsStream("Resources/Field.txt");
-            BufferedReader br = new BufferedReader(new InputStreamReader(input));
+            
+            InputStream input1, input2;
+            input1 = ClassLoader.getSystemResourceAsStream("Resources/Field2.txt");
+            input2 = ClassLoader.getSystemResourceAsStream("Resources/Field2.txt");
+            BufferedReader br = new BufferedReader(new InputStreamReader(input1));
             String s = br.readLine();
             int i = 0;
             while (s != null) {
@@ -80,11 +87,23 @@ public class RainbowGame extends JApplet implements Runnable {
                 s = br.readLine();
                 i++;
             }
+            br = new BufferedReader(new InputStreamReader(input2));
+            s = br.readLine();
+            i = 0;
+            while (s != null) {
+                for (int j = 0; j < s.length(); j++) {
+                    matrixx2[i][j] = Integer.parseInt(String.valueOf(s.charAt(j)));
+                }
+                s = br.readLine();
+                i++;
+            }
+            
+
         } catch (Exception e) {
             System.out.println("error: " + e);
-        }
-        for (int row = 0; row < 41; row++) {
-            for (int col = 0; col < 41; col++) {
+        }            
+        for (int row = 0; row < 40; row++) {
+            for (int col = 0; col < 40; col++) {
                 if (matrixx[row][col] == 1) {
                     w1 = new Wall(wall1, 20 * col, 20 * row, 1);
                     wallBlocks.add(w1);
@@ -94,12 +113,53 @@ public class RainbowGame extends JApplet implements Runnable {
                 } else if (matrixx[row][col] == 3) {
                     w3 = new Wall(block3, 40 * col, 20 * row, 3);
                     wallBlocks.add(w3);
+                } else if (matrixx[row][col] == 4) {
+                    w4 = new Wall(block4, 40 * col, 20 * row, 4);
+                    wallBlocks.add(w4);
+                } else if (matrixx[row][col] == 5) {
+                    w5 = new Wall(block5, 40 * col, 20 * row, 5);
+                    wallBlocks.add(w5);
+                } else if (matrixx[row][col] == 6) {
+                    w6 = new Wall(block6, 40 * col, 20 * row, 6);
+                    wallBlocks.add(w6);
+                } else if (matrixx[row][col] == 7) {
+                    w7 = new Wall(block7, 40 * col, 20 * row, 7);
+                    wallBlocks.add(w7);
                 }
 
             }
         }
+        for (int row = 0; row < 40; row++) {
+            for (int col = 0; col < 40; col++) {
+                if (matrixx2[row][col] == 1) {
+                    w1 = new Wall(wall1, 20 * col, 20 * row, 1);
+                    wallBlocks2.add(w1);
+                } else if (matrixx2[row][col] == 2) {
+                    w2 = new Wall(block2, 40 * col, 20 * row, 2);
+                    wallBlocks2.add(w2);
+                } else if (matrixx2[row][col] == 3) {
+                    w3 = new Wall(block3, 40 * col, 20 * row, 3);
+                    wallBlocks2.add(w3);
+                } else if (matrixx2[row][col] == 4) {
+                    w4 = new Wall(block4, 40 * col, 20 * row, 4);
+                    wallBlocks2.add(w4);
+                } else if (matrixx2[row][col] == 5) {
+                    w5 = new Wall(block5, 40 * col, 20 * row, 5);
+                    wallBlocks2.add(w5);
+                } else if (matrixx2[row][col] == 6) {
+                    w6 = new Wall(block6, 40 * col, 20 * row, 6);
+                    wallBlocks2.add(w6);
+                } else if (matrixx2[row][col] == 7) {
+                    w7 = new Wall(block7, 40 * col, 20 * row, 7);
+                    wallBlocks2.add(w7);
+                }
 
-        //create Tank image
+            }
+        }
+        
+     
+
+        //create katch image
         try {
             URL urlKatch = ClassLoader.getSystemResource("Resources/Katch_strip24.png");
             Katch_strip = ImageIO.read(urlKatch);
@@ -111,7 +171,7 @@ public class RainbowGame extends JApplet implements Runnable {
 
         } catch (Exception e) {
         }
-        //create shell image
+        //create pop image
         try {
             URL urlPop = ClassLoader.getSystemResource("Resources/Pop_strip45.png");
             Pop_strip = ImageIO.read(urlPop);
@@ -133,63 +193,48 @@ public class RainbowGame extends JApplet implements Runnable {
         } catch (Exception e) {
         }
         try {
-            URL urlLifes = ClassLoader.getSystemResource("Resources/Katch_small.png");
-            Lifes_strip = ImageIO.read(urlLifes);
-            spr_Lifes = new Image[1];
-            for (int i = 0; i < 1; i++) {
-                spr_Lifes[i] = Lifes_strip.getSubimage(0, 0, 30, 10);
+            URL urlSmallLeg = ClassLoader.getSystemResource("Resources/Bigleg_small_strip24.png");
+            sLeg_strip = ImageIO.read(urlSmallLeg);
+
+            spr_sLeg = new Image[24];
+            for (int i = 0; i < 24; i++) {
+                spr_sLeg[i] = sLeg_strip.getSubimage(i * 40, 0, 40, 40);
             }
         } catch (Exception e) {
         }
-        //Create explosion image
-        try {
-            URL urlExplosionSmall = ClassLoader.getSystemResource("Resources/Explosion_small_strip6.png");
-            explosion_small_strip = ImageIO.read(urlExplosionSmall);
-
-            spr_explosion_small = new Image[6];
-            for (int i = 0; i < 6; i++) {
-                spr_explosion_small[i] = explosion_small_strip.getSubimage(i * 32, 0, 32, 32);
-            }
-
-            URL urlExplosionLarge = ClassLoader.getSystemResource("Resources/Explosion_large_strip7.png");
-            explosion_large_strip = ImageIO.read(urlExplosionLarge);
-
-            spr_explosion_large = new Image[7];
-            for (int i = 0; i < 7; i++) {
-                spr_explosion_large[i] = explosion_large_strip.getSubimage(i * 64, 0, 64, 64);
-            }
-
-        } catch (Exception e) {
-        }
-
         gameOver = false;
         observer = this;
-
+        
         KeyControl key = new KeyControl();
         setFocusable(true);
         addKeyListener(key);
 
         gameEvents = new GameEvents();
-        p1 = new Player1(Katch[0], 270, 430, 10);// player
-        pp = new Pop(280, 280, 3, 120, 1, 1); // pop
-        leg = new Bigleg(spr_Bigleg[0], 270, 30, 0); //boss
-
+        p1 = new Player1(Katch[0], 250, 430, 10);
+        pp = new Pop(290, 280, 5, 270, 1, 1);
+        leg = new Bigleg(spr_Bigleg[0], 270, 20, 0);
+        sLeg= new SmallBigleg(spr_sLeg[0], 200, 180, 180, 10);
         gameEvents.addObserver(p1);
-
-        explosion = new Explosion();
 
         try {
             URL back = ClassLoader.getSystemResource("Resources/Music.mid");
-            //  backgroundMusic = newAudioClip(back);
-            // backgroundMusic.loop();
+              backgroundMusic = newAudioClip(back);
+              //backgroundMusic.loop();
         } catch (Exception e) {
         }
         try {
-            URL snd1 = ClassLoader.getSystemResource("Resources/Explosion_small.wav");
-            snd_expSmall = newAudioClip(snd1);
-            URL snd2 = ClassLoader.getSystemResource("Resources/Explosion_large.wav");
-            snd_expLarge = newAudioClip(snd2);
-
+            URL block = ClassLoader.getSystemResource("Resources/Sound_block.wav");
+            snd_block = newAudioClip(block);
+        } catch (Exception e) {
+        }
+        try {
+            URL lost = ClassLoader.getSystemResource("Resources/Sound_lost.wav");
+            snd_lost = newAudioClip(lost);
+        } catch (Exception e) {
+        }
+        try {
+            URL wall = ClassLoader.getSystemResource("Resources/Sound_wall.wav");
+            snd_wall = newAudioClip(wall);
         } catch (Exception e) {
         }
     }
@@ -206,8 +251,8 @@ public class RainbowGame extends JApplet implements Runnable {
         Image img;
         int x, y, sizeX, sizeY;
         public int type;
-        int counter;
-        public boolean show;
+        int counter,walltouch;
+        boolean show;
         boolean collision;
 
         public Wall(Image img, int x, int y, int type) {
@@ -226,8 +271,30 @@ public class RainbowGame extends JApplet implements Runnable {
             return show;
         }
 
-        public int katchCollision(int x, int y, int w, int h) {
+        public int popcollision(int x, int y, int w, int h) {
+            if ((y < this.y + this.sizeY) && (x + w > this.x) && (x < this.x + this.sizeX) && (y + h > this.y)) {
 
+                if (y >= this.y + this.sizeY - 5) {
+                    System.out.println("For South");
+                    return 1;
+                }
+                if (x >= this.x + this.sizeX - 5) {
+                    //east
+                    return 4;
+                }
+                if (this.y <= y + h + 5) {
+                    //north
+                    return 2;
+                }
+                if (this.x <= x + w) {
+                    //west
+                    return 3;
+                }
+
+            }
+            return 0;
+        }
+                public int collision(int x, int y, int w, int h) {
             if (((y > (this.y + 20)) && (y < (this.y + sizeY))) && ((x + w) > (this.x + 12)) && (x < (this.x + sizeX - 12))) {
                 return 1;//FOR NORTH
             }
@@ -244,64 +311,16 @@ public class RainbowGame extends JApplet implements Runnable {
             return 0;
         }
 
-        public int popcollision(int x, int y, int w, int h) {
-            /*
-            if (((y > (this.y +1)) && (y < (this.y + sizeY))) && ((x + w) > (this.x + 1)) && (x < (this.x + sizeX - 1))) {
-                System.out.println("For North");
-                return 1;//FOR NORTH
-            }*/
-            
-            if ( (y < this.y + this.sizeY) && (x+w > this.x) && (x< this.x +this.sizeX) && (y +h > this.y)) {
-                
-                if ( y >= this.y + this.sizeY - 5) {
-                    System.out.println("For South");
-                    return 1;
-                }
-                if ( x >= this.x + this.sizeX - 5){
-                    //east
-                    return 4;
-                }
-                if ( this.y <= y + h + 5 ){
-                    //north
-                    return 2;
-                }
-                if ( this.x <= x + w ) {
-                    //west
-                    return 3;
-                }
-                
-                      
-            }
-            /*
-            if ((((y + h) < (this.y + sizeY - 1)) && ((y + h) > this.y)) && ((x + w) > (this.x + 1)) && (x < (this.x + sizeX - 1))) {
-                System.out.println("For south");
-                return 2;//FOR SOUTH
-            }
-            if  ((y < (this.y + sizeY - 6)) && ((y + h) > (this.y + 6)) && (x > (this.x + 10)) && (x < (this.x + sizeX))) {
-                System.out.println("For west");
-                return 3;//FOR WEST
-            }
-            if ((y < (this.y + sizeY - 6)) && ((y + h) > (this.y + 6)) && (((x + w) > this.x) && ((x + w) < (this.x + 6)))) {
-                System.out.println("For east");
-                return 4;//FOR EAST
-            }
-            */
-            return 0;
-        }
-
         public void update(int w, int h) {
-
-            if (show == false) {
-                counter++;
-                if (counter > 500) {
-                    // show = true;
-                    counter = 0;
-                }
-            }
+       
         }
 
         public void draw(Graphics g, ImageObserver obs) {
-            g.drawImage(img, x, y, obs);
+            if (show) {
+                g.drawImage(this.img, x, y, obs);
+            } else if (show == false) {
+             img=null;
+            }
         }
 
     }
@@ -310,8 +329,8 @@ public class RainbowGame extends JApplet implements Runnable {
 
         Image img;
         int x, y, sizeX, sizeY, direction, i;
-        public boolean show;
-        boolean collision, updateDirection;
+        boolean show;
+        boolean  updateDirection;
 
         Bigleg(Image img, int x, int y, int direction) {
             this.direction = direction;
@@ -321,63 +340,144 @@ public class RainbowGame extends JApplet implements Runnable {
             sizeX = img.getWidth(null);
             sizeY = img.getHeight(null);
             show = true;
-            collision = false;
+         
         }
 
         public boolean getVisible() {
             return show;
         }
 
-        public boolean collision(int x, int y, int w, int h) {
-            if (((y + h > this.y) && (y < this.y + sizeY)) && ((x + w > this.x) && (x < this.x + sizeX))) {
+        public int collision(int x, int y, int w, int h) {
+            /*
+            if (((y > (this.y + 20)) && (y < (this.y + sizeY))) && ((x + w) > (this.x + 12)) && (x < (this.x + sizeX - 12))) {
+                return 1;//FOR NORTH
+            }
+            if ((((y + h) < (this.y + sizeY - 20)) && ((y + h) > this.y)) && ((x + w) > (this.x + 12)) && (x < (this.x + sizeX - 12))) {
+                return 2;//FOR SOUTH
+            }
+            if ((y < (this.y + sizeY - 12)) && ((y + h) > (this.y + 12)) && (x > (this.x + 20)) && (x < (this.x + sizeX))) {
+                return 3;//FOR WEST
+            }
+            if ((y < (this.y + sizeY - 12)) && ((y + h) > (this.y + 12)) && (((x + w) > this.x) && ((x + w) < (this.x + 12)))) {
+                return 4;//FOR EAST
+            }*/
+            if ((y < this.y + this.sizeY) && (x + w > this.x) && (x < this.x + this.sizeX) && (y + h > this.y)) {
+                return 1;
+            }
+            return 0;
+        }
+
+        public boolean updateDirection() {
+            if (show) {
+                int N;
+                i += 8;
+                if (i >= 144) {
+                    N = 23;
+                    i = 0;
+                } else {
+                    N = i / 6;
+                }
+                this.img = spr_Bigleg[N];
                 return true;
+
             }
             return false;
         }
 
-        public boolean updateDirection() {
-            int N;
-            i += 5;
-            if (i >= 144) {
-                N = 23;
-                i = 0;
-            } else {
-                N = i / 6;
-            }
-            this.img = spr_Bigleg[N];
-            return true;
-
-        }
-
         public void update() {
-            updateDirection();
-            if (show == false) {
-                updateDirection = false;
-                System.out.println("gg");
-            }
+          if(show) { 
+            updateDirection();}
+        else{
+        this.img=null;
+        }
         }
 
         public void draw(Graphics g, ImageObserver obs) {
             g.drawImage(img, x, y, obs);
         }
     }
+   public class SmallBigleg {
 
+        Image img;
+        int x, y, sizeX, sizeY, direction, i,speed;
+        boolean show;
+        boolean  updateDirection;
+
+        SmallBigleg(Image img, int x, int y, int direction,int speed) {
+            this.direction = direction;
+            this.x = x;
+            this.y = y;
+            this.img = img;
+            this.sizeX = img.getWidth(null);
+            this.sizeY = img.getHeight(null);
+            this.show = true;
+           this.speed=speed;
+        }
+
+        public boolean getVisible() {
+            return show;
+        }
+
+
+
+        public boolean updateDirection() {
+            if (show) {
+                int N;
+                i += 8;
+                if (i >= 144) {
+                    N = 23;
+                    i = 0;
+                } else {
+                    N = i / 6;
+                }
+                this.img = spr_sLeg[N];
+                return true;
+
+            }
+            return false;
+        }
+
+        public void update() {
+          if(show) { 
+            updateDirection();
+            for (int k = 0; k < wallBlocks.size(); k++) {
+                Wall wll = (Wall) wallBlocks.get(k);
+                int collisionType = wll.popcollision(x, y, sizeX, sizeY);
+                if(wll.show==true && collisionType != 0){
+                    direction = 360 - (direction - 180);
+                    System.out.println("nima");
+                    break;
+                }           
+            } 
+            x +=((float) Math.cos(-1 * Math.toRadians(direction))) * speed + 2;
+            
+          }
+          
+        else{
+        this.img=null;
+        }     
+        }
+        public void draw(Graphics g, ImageObserver obs) {
+            g.drawImage(img, x, y, obs);
+        }
+    }
     public class Pop {
 
         Image img;
-        int x, y, speed, sizeX, sizeY, direction, bulletType, Player, i;
+        int x, y, speed, sizeX, sizeY, direction, bulletType, Player, i, collisionType,walltouch;
         boolean show;
 
         Pop(int x, int y, int speed, int direction, int type, int Player) {
             this.direction = direction;
             this.bulletType = type;
             this.Player = Player;
+            this.collisionType = 1;
             //普通子弹
             this.x = x;
             this.y = y;
             this.speed = speed;
             show = true;
-
+         this.walltouch=0;
         }
 
         public int getY() {
@@ -398,7 +498,7 @@ public class RainbowGame extends JApplet implements Runnable {
 
         public void updateDirection() {
             int N;
-            i += 3;
+            i += 5;
             if (i >= 270) {
                 N = 44;
                 i = 0;
@@ -419,101 +519,140 @@ public class RainbowGame extends JApplet implements Runnable {
             for (int k = 0; k < wallBlocks.size(); k++) {
                 Wall wll = (Wall) wallBlocks.get(k);
                 int collisionType = wll.popcollision(x, y, sizeX, sizeY);
-                if (wll.show == true && (collisionType==1||collisionType==2)) {
+                if (wll.show == true && (collisionType == 1 || collisionType == 2)) {
 
-                    if (wll.type == 2) {
+                    if (wll.type == 2 || wll.type == 4 || wll.type == 6) {
                         //this.collisionType = -this.collisionType;
                         wll.show = false;
-                         direction =  - direction;
-                          score1++;
-                        System.out.println("可打破（南北）");
-                    } else if (wll.type == 3) {
-                        direction = - direction;                          
-                        System.out.println("硬砖块（南北）");
-                    } else if (wll.type == 1) {
-                        
-                        if (x > 585 || x < 15){
-                            direction = 360 - (direction - 180);
-                        }else {
-                            direction =- direction; 
-                        }
-
-                        System.out.println("墙（南北）");
+                        direction = -direction;
+                        score1++;
+                        snd_block.play();
+                      //  System.out.println("可打破（南北）");
                     }
-                    moveType=0;
-                    y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed+1;
-                    x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed+1;
-                   break;
-                }else if(wll.show == true && (collisionType==3||collisionType==4)){
-                     if (wll.type == 2) {
+                    else if ( wll.type == 7) {
+                      
+                          wll.type=4;
+                         wll.img=w4.img;
+                        direction =  - direction;                     
+                   
+                    } 
+                    
+                    else if ( wll.type == 5 ) {
+                        //this.collisionType = -this.collisionType;
                         wll.show = false;
-                         direction = 360 - (direction - 180);
-                          score1++;
-                        System.out.println("可打破砖块");
-                    } else if (wll.type == 3) {
-                        direction = 360 - (direction - 180);                           
-                        System.out.println("硬砖块");
+                        direction = -direction;
+                       p1.lifes+=30;
+                        snd_block.play();
+                        //System.out.println("可打破shengming（南北）");
+                    } 
+                    else if (wll.type == 3) {
+                        direction = -direction;
+                      //  System.out.println("硬砖块（南北）");
+                        snd_wall.play();
                     } else if (wll.type == 1) {
-                        direction = 360 - (direction - 180);  
-                        System.out.println("墙");
+
+                        if (x > 585 || x < 15) {
+                            direction = 360 - (direction - 180);
+                        } else {
+                            direction = -direction;
+                        }
+                        snd_wall.play();
+                      //  System.out.println("墙（南北）");
                     }
-                     moveType = 0;
-                    y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed+1;
-                    x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed+1;
-                     break;
+         
+                    moveType = 0;
+                    y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed + 1;
+                    x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed + 1;
+                    break;
+                   
+                } else if (wll.show == true && (collisionType == 3 || collisionType == 4)) {
+                    if (wll.type == 2 || wll.type == 4 || wll.type == 6) {
+                        wll.show = false;
+                        direction = 360 - (direction - 180);
+                        score1++;
+                        snd_block.play();
+                       // System.out.println("可打破砖块");
+                    }
+                     else if (wll.type == 7) {
+                     wll.type=4;
+                        wll.img=w4.img;
+                        direction =  - direction;                     
+                                    
+                    }
+                        
+                       // System.out.println("shengming");                  
+                     else if (wll.type == 5) {
+                        wll.show = false;
+                        direction = 360 - (direction - 180);
+                        p1.lifes+=30;
+                        snd_block.play();
+                       // System.out.println("shengming");
+                    }
+                    else if (wll.type == 3) {
+                        direction = 360 - (direction - 180);
+                       // System.out.println("硬砖块");
+                        snd_wall.play();
+                    } else if (wll.type == 1) {
+                        direction = 360 - (direction - 180);
+                       // System.out.println("墙");
+                        snd_wall.play();
+                    }
+             
+                    moveType = 0;
+                    y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed + 1;
+                    x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed + 1;
+                    break;
 
                 }
             }
-            if (moveType == 1){
-                if (p1.popCollision(x, y, sizeX, sizeY,speed) == 0) {
-                         y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
-                         x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;
-                } else if (p1.popCollision(x, y, sizeX, sizeY,speed) == 2) {
-                    System.out.println("2");
-                    //this.collisionType = -this.collisionType;
-                    direction=-direction;
+            if (moveType == 1) {
+                if (p1.popCollision(x, y, sizeX, sizeY) == 0) {
                     y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
-                    x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;          
-                } //右边
-                else if (p1.popCollision(x, y, sizeX, sizeY,speed) == 3) {
+                    x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;
+                } else if (p1.popCollision(x, y, sizeX, sizeY) == 2) {
+                    if(p1.x<=pp.x&&pp.x<p1.x+20){
+                   // System.out.println("zuozuozuo");
+                    
+                    direction = 120;
+                    y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
+                    x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;
+                    }
+                    else if(p1.x+20<=pp.x&&pp.x<=p1.x+70){
                     direction = 60;
-                    System.out.println("3");
+                  //  System.out.println("youyouyou");
+                    y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
+                    x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;
+                    }
+                } //右边
+                else if (p1.popCollision(x, y, sizeX, sizeY) == 3) {
+                    direction = 30;
+                  //  System.out.println("3");
                     //this.collisionType = -this.collisionType;
                     x += ((float) Math.cos(-1 * Math.toRadians(direction))) * speed;
                     y += ((float) Math.sin(-1 * Math.toRadians(direction))) * speed;
                     //  y -= this.speed;
                 } //左边
-                else if (p1.popCollision(x, y, sizeX, sizeY,speed) == 4) {
-                    direction = 120;
-                    System.out.println("4");
+                else if (p1.popCollision(x, y, sizeX, sizeY) == 4) {
+                    direction = 150;
+                    //System.out.println("4");
                     //this.collisionType = -this.collisionType;
 
                 }
+               
+                
             }
-
-            if (bulletType == 1) {
-
-                
-                
-                
-               /* if (leg.collision(x, y, sizeX, sizeY) && leg.show == true) {
-
-                    this.collisionType = -this.collisionType;
-                    leg.updateDirection = false;
-                    leg.show = false;
-
-                    score1++;
-                    System.out.println("gameover1");
-
-                }*/
+            if(leg.show==true&&leg.collision(x, y, sizeX, sizeY)==1){
+                nextlevel=true;
+                restart();
+                System.out.println("legg");
             }
-
             if (this.y > 450) {
-                System.out.println("mei");
-                direction =  - direction;
-                //restart();
+                //System.out.println("mei");
+                //direction = -direction;
+                snd_lost.play();
+                restart();
             }
-            }
+        }
 
         public void draw(Graphics g, ImageObserver obs) {
 
@@ -523,10 +662,11 @@ public class RainbowGame extends JApplet implements Runnable {
 
     }
 
+
     public abstract class Katch implements Observer {
 
         Image img;
-        int x, y, sizeX, sizeY, speed;
+        int x, y, sizeX, sizeY, kspeed;
         boolean show;
         int damage;
         int lifes;
@@ -535,19 +675,18 @@ public class RainbowGame extends JApplet implements Runnable {
         int WeaponType;
         int count;
 
-        Katch(Image img, int x, int y, int speed) {
+        Katch(Image img, int x, int y, int kspeed) {
             direction = 0;
             this.img = img;
             this.x = x;
             this.y = y;
             sizeX = img.getWidth(null);
             sizeY = img.getHeight(null);
-            this.speed = speed;
+            this.kspeed = kspeed;
             WeaponType = 0;
             count = 0;
             show = true;
-            damage = 0;
-            lifes = 3;
+            lifes = 140;
 
         }
 
@@ -558,6 +697,7 @@ public class RainbowGame extends JApplet implements Runnable {
         public int getY() {
             return y;
         }
+
         public int getSizeX() {
             return sizeX;
         }
@@ -574,14 +714,6 @@ public class RainbowGame extends JApplet implements Runnable {
             return health;
         }
 
-        public void fire(int weaponType, int player) {
-
-            if (weaponType == 1) {
-                pp = new Pop(x + (sizeX / 4), y + (sizeY / 4), PopSpeed, direction, 1, player);
-
-            }
-        }
-
         public void draw(Graphics g, ImageObserver obs) {
             if (show) {
                 g.drawImage(img, x, y, obs);
@@ -590,7 +722,7 @@ public class RainbowGame extends JApplet implements Runnable {
 
         }
 
-        public int popCollision(int x, int y, int w, int h,int kspeed) {
+        public int popCollision(int x, int y, int w, int h) {
 
             if (((y > (this.y + 20)) && (y < (this.y + sizeY))) && ((x + w) > (this.x + 12)) && (x < (this.x + sizeX - 12))) {
                 return 1;//FOR NORTH
@@ -611,7 +743,7 @@ public class RainbowGame extends JApplet implements Runnable {
     public class Player1 extends Katch {
 
         Player1(Image img, int x, int y, int speed) {
-            //call tankparent CODE REUSE
+
             super(img, x, y, speed);
 
         }
@@ -625,36 +757,19 @@ public class RainbowGame extends JApplet implements Runnable {
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_A:
                         System.out.println("Left");
-                        //转回来
-                        if (x > 0) {
-                            x -= speed*2;
+
+                        if (x > 30) {
+                            x -= kspeed +5;
                         }
 
                         break;
                     case KeyEvent.VK_D:
                         System.out.println("Right");
 
-                        if (x < 570) {
-                            x += speed*2;
+                        if (x < 530) {
+                            x += kspeed +5;
                         }
 
-                        break;
-                    case KeyEvent.VK_W:
-                        System.out.println("Up");
-
-                        break;
-                    case KeyEvent.VK_S:
-                        System.out.println("Down");
-
-                        break;
-                    case KeyEvent.VK_SPACE:
-                        //  fire(1, 1);
-                        break;
-
-                    case KeyEvent.VK_CONTROL:
-                        if (count > 0) {
-                            fire(2, 1);
-                        }
                         break;
 
                     default:
@@ -662,94 +777,27 @@ public class RainbowGame extends JApplet implements Runnable {
                             System.out.println("Fire");
                         }
                 }
-            } else if (ge.type == 2) {
-                String msg = (String) ge.event;
-                if (msg.equals("Explosion1")) {
-                    health--;
-
-                    if (health == 0) {
-                        score1++;
-                        explosion.lx = x;
-                        explosion.ly = y;
-                        explosion.activeLarge = true;
-                        snd_expLarge.play();
-                        //show=false;
-                    }
-                }
-                if (msg.equals("Rocket1")) {
-                    WeaponType = 2;
-                    count = 10;
-                }
             }
 
-            for (int k = 0; k < wallBlocks.size(); k++) {
-                Wall wll = (Wall) wallBlocks.get(k);
-
-                if (wll.katchCollision(x, y, sizeX, sizeY) == 1 && wll.show == true) {
-                    y += 5;
-                    System.out.println("1");
-                }
-                if (wll.katchCollision(x, y, sizeX, sizeY) == 2 && wll.show == true) {
-                    y -= 5;
-                    System.out.println("2");
-                }
-                if (wll.katchCollision(x, y, sizeX, sizeY) == 3 && wll.show == true) {
-                    x += 5;
-                    System.out.println("3");
-                }
-                if (wll.katchCollision(x, y, sizeX, sizeY) == 4 && wll.show == true) {
-                    x -= 5;
-                    System.out.println("4");
-                }
-
-            }
-
-        }
-    }
-
-    public class Explosion {
-
-        int sx = 0;
-        int sy = 0;
-        private int lx = 0;
-        private int ly = 0;
-        public boolean activeSmall = false;
-        public boolean activeLarge = false;
-        private int numFramesSmall = 6;
-        private int numFramesLarge = 7;
-        private int currentFrameSmall = 0;
-        private int currentFrameLarge = 0;
-
-        public void drawExplosionSmall(Graphics g, ImageObserver obs) {
-            g.drawImage(spr_explosion_small[currentFrameSmall], sx, sy, null);
-            currentFrameSmall++;
-            if (currentFrameSmall >= numFramesSmall) {
-                currentFrameSmall = 0;
-                activeSmall = false;
-            }
-        }
-
-        public void drawExplosionLarge(Graphics g, ImageObserver obs) {
-            g.drawImage(spr_explosion_large[currentFrameLarge], lx, ly, null);
-            currentFrameLarge++;
-            if (currentFrameLarge >= numFramesLarge) {
-                currentFrameLarge = 0;
-                activeLarge = false;
-                restart();
-            }
         }
     }
 
     public void restart() {
 
-        p1.x = 270;
+        p1.x = 250;
         p1.y = 430;
         p1.direction = 0;
         p1.img = Katch[p1.direction / 6];
-        p1.lifes -= 1;
-        pp.x = 270;
-        pp.y = 200;
-        pp.direction=270;
+        p1.lifes -= 30;
+
+        pp.x = 290;
+        pp.y = 280;
+        pp.direction = 280;
+        
+        
+        if (p1.lifes == 20) {
+            gameOver = true;
+        }
         /////////////
 
     }
@@ -787,7 +835,10 @@ public class RainbowGame extends JApplet implements Runnable {
 
         if (!gameOver) {
             drawBackGroundWithTileImage(w, h, g2);
-
+            if (this.nextlevel){
+                wallBlocks=wallBlocks2;
+                this.nextlevel=false;
+            }
             for (int k = 0; k < wallBlocks.size(); k++) {
                 Wall wll = (Wall) wallBlocks.get(k);
                 wll.update(w, h);
@@ -795,16 +846,27 @@ public class RainbowGame extends JApplet implements Runnable {
                     wll.draw(g2, this);
                 }
             }
+            
 
             p1.draw(g2, this);
 
             pp.update(w, h);
             pp.draw(g2, this);
+
             leg.update();
             leg.draw(g2, this);
+            sLeg.update();
+            sLeg.draw(g2, this);
+            for (int i = p1.lifes; i >= 50; i -= 30) {
+                g2.drawImage(life, i, 400, this);
 
+            }
+            
+        } else {
+            g2.drawImage(background2, 0, 0, this);
+            g2.drawImage(gameover, 0, 0, this);
         }
-        
+
     }
 
     public void drawMap(int w, int h, Graphics2D g3) {
@@ -819,12 +881,17 @@ public class RainbowGame extends JApplet implements Runnable {
         g3.drawImage(screen1, 0, 0, null);
 
         //Scores
-        g3.setColor(Color.BLUE);
-        g3.setFont(new Font(null, Font.BOLD, 25));
-        g3.drawString("Score: " + Integer.toString(score1), 50, 350);
-        g3.setColor(Color.BLUE);
-        g3.setFont(new Font(null, Font.BOLD, 25));
-        g3.drawString("Life: " + Integer.toString(p1.lifes), 50, 450);
+        if (!gameOver) {
+            g3.setColor(Color.BLACK);
+            g3.setFont(new Font(null, Font.BOLD, 25));
+            g3.drawString("Score: " + Integer.toString(score1), 50, 350);
+
+        } else{
+
+            g3.setColor(Color.BLACK);
+            g3.setFont(new Font(null, Font.BOLD, 25));
+            g3.drawString("Your Total Score: " + Integer.toString(score1), 50, 50);
+        } 
     }
 
     public Graphics2D createGraphics2DG3(int w, int h) {
@@ -858,7 +925,6 @@ public class RainbowGame extends JApplet implements Runnable {
         drawMap(window_width, window_height, g3);
         g3.dispose();
         g.drawImage(bimg2, 0, 0, this);
-
     }
 
     public void start() {
@@ -886,7 +952,8 @@ public class RainbowGame extends JApplet implements Runnable {
     public static void main(String[] args) throws IOException {
         final RainbowGame demo = new RainbowGame();
         demo.init();
-        JFrame f = new JFrame("Tank War");
+   
+        JFrame f = new JFrame("Rainbow Reef");
         f.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 System.exit(0);
